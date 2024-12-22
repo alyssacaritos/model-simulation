@@ -25,32 +25,33 @@ def load_files():
 
 def predict_and_visualize(model, scaler, input_features):
     try:
-        # Preprocess the inputs using the scaler before prediction
+        # Ensure input features are in array format
         input_array = [input_features]
-        
-        # Apply the scaler's transform method to scale the input features
-        if scaler:
-            input_scaled = scaler.transform(input_array)  # Transform using the scaler
-        else:
-            input_scaled = input_array  # If no scaler, use raw input features
 
-        # Make predictions
+        # Check and apply scaler only if it's a proper scaler object
+        if scaler and hasattr(scaler, "transform"):
+            input_scaled = scaler.transform(input_array)
+        else:
+            st.warning("No valid scaler provided; using raw input features.")
+            input_scaled = input_array
+
+        # Make predictions using the model
         prediction = model.predict(input_scaled)
-        
-        # Check if model supports 'predict_proba' and handle accordingly
+
+        # Handle probability predictions if supported
         if hasattr(model, "predict_proba"):
             probabilities = model.predict_proba(input_scaled)[0]
-            class_labels = model.classes_  # Class labels for visualization
+            class_labels = model.classes_
         else:
             probabilities = None
             class_labels = None
 
-        # Display results
+        # Display prediction results
         st.subheader("Prediction Results")
         st.write(f"*Predicted Class:* {prediction[0]}")
 
-        # Display class probabilities if available
-        if probabilities and class_labels is not None:
+        # Display class probabilities (if available)
+        if probabilities is not None and class_labels is not None:
             prob_fig = px.bar(
                 x=class_labels,
                 y=probabilities,
@@ -61,6 +62,7 @@ def predict_and_visualize(model, scaler, input_features):
 
     except Exception as e:
         st.error(f"Error during prediction: {e}")
+
 
 def main():
     st.title("ML Model Implementation")
