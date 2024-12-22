@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -259,13 +260,14 @@ def run():
     model = model_dict.get(algorithm)
     model.fit(X_train, y_train)
 
-    # Performance Metrics
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     st.subheader("📝 Performance Metrics:")
-    st.dataframe(f"**Accuracy**: {accuracy:.2f}")
-    st.write("**Classification Report**:")
-    st.dataframe(classification_report(y_test, y_pred))
+    st.markdown(f"**Accuracy**: {accuracy:.2f}") 
+    st.write("**Classification Report:**")
+    report_dict = classification_report(y_test, y_pred, output_dict=True)  
+    report_df = pd.DataFrame(report_dict).transpose()  
+    st.dataframe(report_df.style.format(precision=2))
 
 # Confusion Matrix
     st.subheader("📊 Confusion Matrix:")
