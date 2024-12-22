@@ -802,8 +802,7 @@ def main():
                 model_accuracy_df = pd.DataFrame(model_accuracy_data)
 
 
-                scaler = StandardScaler()
-                model_accuracy_df["Scaled Accuracy"] = scaler.fit_transform(model_accuracy_df[["Accuracy"]])
+                
 
                 # Streamlit UI for selecting a model to download
                 selected_model = st.selectbox(
