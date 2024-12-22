@@ -30,7 +30,6 @@ def load_data(file):
     """Load data from a CSV file."""
     try:
         data = pd.read_csv(file)
-        st.success("Data loaded successfully!")
         return data
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -41,8 +40,7 @@ def preprocess_data(data, target_column):
     try:
         X = data.drop(columns=[target_column])
         y = data[target_column]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        st.success("Data preprocessing completed!")
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
         return X_train, X_test, y_train, y_test
     except Exception as e:
         st.error(f"Error during preprocessing: {e}")
@@ -784,17 +782,7 @@ def main():
                             display_model_comparison(results)
                             display_performance_summary(results)
     
-            
-
-
-
-
-
-
-
-
-
-    
+ 
 
 if __name__ == "__main__":
     main()
