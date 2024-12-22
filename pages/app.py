@@ -600,7 +600,7 @@ def main():
 
     if data_source == "Generate Synthetic Data":
         class_data = generate_synthetic_data(features, classes, total_sample_size)
-        if generate_data_button or 'generated':
+        if generate_data_button:
             handle_data_output(features, classes, class_data, total_sample_size, train_test_split_percent)
             
         all_data = np.vstack(class_data)
