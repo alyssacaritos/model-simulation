@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import time
 import os
+import io
 import joblib
 import plotly.express as px
 import numpy as np
@@ -19,6 +20,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler 
 
 
 if "models" not in st.session_state:
@@ -30,6 +33,7 @@ def load_data(file):
     """Load data from a CSV file."""
     try:
         data = pd.read_csv(file)
+        st.success("Data loaded successfully!")
         return data
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -40,7 +44,8 @@ def preprocess_data(data, target_column):
     try:
         X = data.drop(columns=[target_column])
         y = data[target_column]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        st.success("Data preprocessing completed!")
         return X_train, X_test, y_train, y_test
     except Exception as e:
         st.error(f"Error during preprocessing: {e}")
@@ -103,7 +108,7 @@ def adjust_feature_count(class_name, features):
 
 def configure_class_settings(features, classes):
     """Configures per-class settings for mean and std dev values."""
-    st.subheader("Class-Specific Settings")
+    st.subheader("⚙️ Class-Specific Settings")
     for class_name in classes:
         with st.expander(f"{class_name}"):
             col1, col2 = st.columns(2)
@@ -165,7 +170,7 @@ def handle_data_output(features, classes, class_data, total_sample_size, train_t
     train_samples = int(train_size * total_sample_size)
     test_samples = total_sample_size - train_samples
 
-    st.subheader("Dataset Split Information")
+    st.subheader("🔀 Dataset Split Information")
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("Total Samples")
@@ -183,7 +188,7 @@ def handle_data_output(features, classes, class_data, total_sample_size, train_t
     scaled_df = pd.DataFrame(scaled_data, columns=features)
     scaled_df['Target'] = labels
 
-    st.subheader("Generated Data Sample")
+    st.subheader("📑 Generated Data Sample")
     col1, col2 = st.columns([4, 4])
     with col1:
         st.write("Original Data (Random samples from each class):")
@@ -192,16 +197,20 @@ def handle_data_output(features, classes, class_data, total_sample_size, train_t
         st.write("Scaled Data (using best model's scaler):")
         st.dataframe(scaled_df, use_container_width=True)
 
+import streamlit as st
+import pandas as pd
+
 def sidebar_section():
     """Handles the sidebar UI and input collection."""
-    st.header("Data Source")
+    st.header("📂Data Source")
     data_source = st.radio("Choose data source:", ["Generate Synthetic Data", "Upload Dataset"])
 
     features, classes = [], []
     total_sample_size, train_test_split_percent = 0, 0
+    uploaded_file = None  # Initialize uploaded_file to None by default
 
     if data_source == "Generate Synthetic Data":
-        st.subheader("Synthetic Data Generation")
+        st.subheader("📂 Synthetic Data Generation")
         st.write("Define parameters for synthetic data generation below.")
 
         features = parse_input(st.text_input("Enter feature names (comma-separated)", "length (mm), width (mm), density (g/cm³)"))
@@ -216,8 +225,14 @@ def sidebar_section():
         with col2:
             train_test_split_percent = st.slider("Train-Test Split (%)", min_value=10, max_value=50, step=5)
 
+        # Return values for "Generate Synthetic Data" with uploaded_file set to None
+        return data_source, features, classes, total_sample_size, train_test_split_percent, uploaded_file
 
-    return data_source, features, classes, total_sample_size, train_test_split_percent
+    else:
+        uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+
+        # Return values for "Upload Dataset"
+        return data_source, None, None, None, None, uploaded_file
 
 
 def load_and_prepare_data(class_data):
@@ -344,7 +359,7 @@ def display_classification_report(best_model, X_test, y_test):
 
 def display_model_comparison(results):
     model_comparison_df = pd.DataFrame(results).T
-    st.subheader("Model Comparison")
+    st.subheader("🔎 Model Comparison")
     st.dataframe(model_comparison_df)
 
 def display_best_model_and_results(results):
@@ -404,7 +419,7 @@ def display_metrics_chart(metric_df, metrics):
         metric_df,
         x=metric_df.index,  
         y=metrics,         
-        title="Performance Metrics Comparison",
+        title="📝 Performance Metrics Comparison",
         labels={"value": "Score", "variable": "Metric", "index": "Model"},
         barmode='group',     
     )
@@ -415,7 +430,7 @@ def display_performance_summary(model_results):
     """
     Displays the performance metrics summary section.
     """
-    st.subheader("Performance Metrics Summary")
+    st.subheader("📝 Performance Metrics Summary")
     
     # Define metrics to compare
     metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
@@ -469,7 +484,7 @@ def save_models(models, results, saved_models_dir):
         st.error("No models or results found to save.")
 # Function to display the download button for models
 def display_download_button(saved_models_dir, model_accuracy_df):
-    selected_model = st.selectbox("Select Model to Download", options=model_accuracy_df["Model"])
+    selected_model = st.selectbox("📥 Select Model to Download", options=model_accuracy_df["Model"])
 
     if selected_model:
         model_file_path = os.path.join(saved_models_dir, f"{selected_model}.pkl")
@@ -512,7 +527,7 @@ def plot_learning_curve(estimator, title, X, y, cv=None, train_sizes=np.linspace
 
 # Function to display learning curves
 def display_learning_curves(models, model_results, X_train, y_train):
-    st.subheader("Learning Curves for All Models")
+    st.subheader("📈 Learning Curves for All Models")
 
     model_names = list(models.keys())
     n_models = len(model_names)
@@ -553,7 +568,7 @@ def plot_confusion_matrix(model, X_test, y_test, model_name, class_names, model_
 
 # Function to display confusion matrices
 def display_confusion_matrices(models, model_results, X_test, y_test):
-    st.subheader("Confusion Matrix for Each Model")
+    st.subheader("📊 Confusion Matrix for Each Model")
 
     n_models = len(models)
     rows = (n_models + 2) // 4
@@ -584,7 +599,7 @@ def display_confusion_matrices(models, model_results, X_test, y_test):
     
 def main():
       
-    st.title("ML Model Generator")
+    st.title("🤖 ML Model Generator 🤖")
    
    
     # Initialize session state attributes
@@ -595,8 +610,11 @@ def main():
 
     with st.sidebar:
         
-        data_source, features, classes, total_sample_size, train_test_split_percent = sidebar_section()
+        data_source, features, classes, total_sample_size, train_test_split_percent, uploaded_file = sidebar_section()
+
         generate_data_button = st.button("Generate Data and Train Model")
+
+
 
     if data_source == "Generate Synthetic Data":
         class_data = generate_synthetic_data(features, classes, total_sample_size)
@@ -619,7 +637,7 @@ def main():
             scaled_df = pd.DataFrame(scaled_data, columns=features)
             scaled_df['Target'] = labels  
 
-            st.subheader("Feature Visualization")
+            st.subheader("📊 Feature Visualization")
             features = class_df.columns[:-1]  # Exclude 'Target' for plotting
 
             # Convert all features to numeric, coercing errors
@@ -640,7 +658,7 @@ def main():
                 st.session_state.z_feature = features[2] if len(features) > 2 else features[0]
 
             # Select visualization type
-            visualization_type = st.radio("Select Visualization Type", ["2D", "3D"])
+            visualization_type = st.radio("📈Select Visualization Type📈", ["2D", "3D"])
 
             if visualization_type == "2D":
                 # Dropdowns for X and Y axes
@@ -695,7 +713,7 @@ def main():
             y = class_df["Target"]
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=(100 - train_test_split_percent) / 100)
             
-            st.subheader("Download Dataset")
+            st.subheader("📥 Download Dataset")
 
             original_csv = convert_df_to_csv(class_df)
             scaled_csv = convert_df_to_csv(scaled_df)
@@ -704,14 +722,14 @@ def main():
             col1, col2 = st.columns(2)
             with col1:
                 st.download_button(
-                    label="Original Dataset (CSV)",
+                    label="📥 Original Dataset (CSV)",
                     data=original_csv,
                     file_name="original_dataset.csv",
                     mime="text/csv"
                 )
             with col2:
                 st.download_button(
-                    label="Scaled Dataset (CSV)",
+                    label="📥 Scaled Dataset (CSV)",
                     data=scaled_csv,
                     file_name="scaled_dataset.csv",
                     mime="text/csv"
@@ -719,7 +737,7 @@ def main():
 
             
             with st.expander("Dataset Statistics"):
-                st.subheader("Dataset Statistics Overview")
+                st.subheader("♨️ Dataset Statistics Overview")
 
                 col1, col2 = st.columns(2)
 
@@ -743,7 +761,7 @@ def main():
                 display_model_comparison(results)
                 display_performance_summary(results)
 
-                st.subheader("Saved Models")
+                st.subheader("💾 Saved Models and Accuracy")
                 display_model_accuracy(results)
     
                 saved_models_dir = "saved_models"
@@ -758,41 +776,215 @@ def main():
                 display_learning_curves(models, results, X_train, y_train)
                 
                 display_confusion_matrices(models, results, X_test, y_test)
-
-
+                    
     elif data_source == "Upload Dataset":
+        if uploaded_file is not None:
+            try:
+                # Read and validate the uploaded file
+                raw_file_content = uploaded_file.getvalue().decode("utf-8")
+                class_df = pd.read_csv(io.StringIO(raw_file_content))
 
-        file = st.file_uploader("Upload your dataset (CSV format)", type=["csv"])
+                # Validate the dataset structure
+                if 'Target' not in class_df.columns:
+                    st.error("The dataset must include a 'Target' column.")
+                else:
+                    features = class_df.columns[:-1].tolist()  # Exclude 'Target'
+                    class_df['Target'] = class_df['Target'].astype(str)  # Ensure 'Target' is categorical
 
-        if file is not None:
-            data = load_data(file)
-            if data is not None:
-                column_names = data.columns.tolist()
-                target_column = st.selectbox("Select the target column name:", column_names)
-                if target_column:
-                    X_train, X_test, y_train, y_test = preprocess_data(data, target_column)
-                    if X_train is not None and y_train is not None:
+                    st.sidebar.subheader("📂 Dataset Information")
+                    st.sidebar.write(f"Shape: {class_df.shape}")
+                    st.sidebar.write(f"Columns: {list(class_df.columns)}")
 
-                        best_model, results, models = train_models(X_train, y_train, X_test, y_test)
+                    # Feature Scaling
+                    scaler = StandardScaler()
+                    X_scaled = scaler.fit_transform(class_df[features])
 
-                        if best_model:
-                            display_best_model_and_results(results)
-                            
-                            display_classification_report(best_model, X_test, y_test)
-                            display_model_comparison(results)
-                            display_performance_summary(results)
-    
-            
+                    # Convert scaled data back into DataFrame
+                    scaled_df = pd.DataFrame(X_scaled, columns=features)
+
+                    # Add the 'Target' column back to the scaled data
+                    scaled_df['Target'] = class_df['Target']
+
+                    # Create two columns for the original and scaled datasets
+                    col1, col2 = st.columns(2)
+
+                    # Train/Test split
+                    train_test_split_percent = 80
+                    X = class_df[features]
+                    y = class_df["Target"]
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        X, y, test_size=(100 - train_test_split_percent) / 100
+                    )
+
+                    # Dataset Split Information
+                    st.subheader("🔀 Dataset Split Information")
+                    col1, col2, col3 = st.columns(3)
+
+                    # Displaying the information with large numbers below the labels
+                    with col1:
+                        st.write("Total Samples:")
+                        st.markdown(f"<h2 style='text-align: left;'>{len(class_df)}</h2>", unsafe_allow_html=True)
+
+                    with col2:
+                        st.write("Training Samples:")
+                        st.markdown(f"<h2 style='text-align: left;'>{len(X_train)}</h2>", unsafe_allow_html=True)
+
+                    with col3:
+                        st.write("Testing Samples:")
+                        st.markdown(f"<h2 style='text-align: left;'>{len(X_test)}</h2>", unsafe_allow_html=True)
+
+
+                     # Clean column names
+                    st.subheader("📑 Generated Data Sample")
+                    class_df.columns = class_df.columns.str.strip()
+
+                    # Create two columns for the original and scaled datasets
+                    col1, col2 = st.columns(2)
+
+                    # Display the original dataset in the first column
+                    with col1:
+                        st.subheader("Original Dataset")
+                        st.dataframe(class_df)
+
+                    # Feature Scaling
+                    scaler = StandardScaler()
+                    X_scaled = scaler.fit_transform(class_df[features])
+
+                    # Convert scaled data back into DataFrame
+                    scaled_df = pd.DataFrame(X_scaled, columns=features)
+
+                    # Add the 'Target' column back to the scaled data
+                    scaled_df['Target'] = class_df['Target']
+
+                    # Display the scaled dataset in the second column
+                    with col2:
+                        st.subheader("Scaled Dataset")
+                        st.dataframe(scaled_df)
+
+                    st.subheader("📊 Feature Visualization")
+
+                    # Visualization Type Selection
+                    visualization_type_main = st.radio("📈Select Visualization Type📈", ["2D", "3D"], key="visualization_type_main")
+
+                    if visualization_type_main == "2D":
+                        # Dropdowns for X and Y axes
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            x_feature = st.selectbox("Select X-Axis Feature", features, key="x_feature_select")
+                        with col2:
+                            y_feature = st.selectbox("Select Y-Axis Feature", features, key="y_feature_select")
+                        plot_2d_scatter(class_df, x_feature, y_feature)
+
+                    elif visualization_type_main == "3D":
+                        # Dropdowns for X, Y, and Z axes
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            x_feature = st.selectbox("Select X-Axis Feature", features, key="x_3d")
+                        with col2:
+                            y_feature = st.selectbox("Select Y-Axis Feature", features, key="y_3d")
+                        with col3:
+                            z_feature = st.selectbox("Select Z-Axis Feature", features, key="z_3d")
+                        plot_3d_scatter(class_df, x_feature, y_feature, z_feature)
+
+                    st.subheader("📥 Download Dataset")
+
+                    # Create two columns for download buttons
+                    col1, col2 = st.columns(2)
+
+                    # Download Original Dataset CSV
+                    with col1:
+                        original_csv = class_df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download Original Dataset (CSV)",
+                            data=original_csv,
+                            file_name="original_dataset.csv",
+                            mime="text/csv"
+                        )
+
+                    # Download Scaled Dataset CSV
+                    with col2:
+                        scaled_csv = scaled_df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download Scaled Dataset (CSV)",
+                            data=scaled_csv,
+                            file_name="scaled_dataset.csv",
+                            mime="text/csv"
+                        )
+
+                    if 'Target' in class_df.columns:
+                        dataset_stats_option = st.selectbox("🔎 Select Statistics to View", ["Summary Statistics", "Target Distribution"])
+
+                        if dataset_stats_option == "Summary Statistics":
+                            # Create two columns to display statistics for both original and scaled datasets
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.write("Original Dataset Summary Statistics:")
+                                st.write(class_df.describe())
+                            with col2:
+                                st.write("Scaled Dataset Summary Statistics:")
+                                st.write(scaled_df.describe())
+
+                        elif dataset_stats_option == "Target Distribution":
+                            # Create two columns to display target distribution for both original and scaled datasets
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.write("Original Dataset Target Distribution:")
+                                st.write(class_df['Target'].value_counts())
+                            with col2:
+                                st.write("Scaled Dataset Target Distribution:")
+                                st.write(scaled_df['Target'].value_counts())
+
+                    # Train models
+                    best_model, results, models = train_models(X_train, y_train, X_test, y_test)
+
+                    # Display results
+                    if best_model:
+                        display_best_model_and_results(results)
+                        display_classification_report(best_model, X_test, y_test)
+                        display_model_comparison(results)
+                        display_performance_summary(results)
+
+                        # Save models using the existing save_models function
+                        saved_models_dir = "saved_models"  # Ensure this directory is defined
+                        save_models(models, results, saved_models_dir)  # Correctly call the function
+
+                        # Display Saved Models Table with Accuracy
+                        model_accuracy_data = {
+                            "Model": list(models.keys()),
+                            "Accuracy": [results.get(model_name, {}).get("Accuracy", "N/A") for model_name in models.keys()]
+                        }
+                        model_accuracy_df = pd.DataFrame(model_accuracy_data)
+
+                        st.subheader("💾 Saved Models and Accuracy")
+                        st.dataframe(model_accuracy_df)  # Display models with accuracy
+
+                        # Dropdown for selecting a model to download
+                        selected_model = st.selectbox("📥 Select Model to Download", options=model_accuracy_df["Model"])
+
+                        if selected_model:
+                            model_file_path = os.path.join(saved_models_dir, f"{selected_model}.pkl")
+                            if os.path.exists(model_file_path):
+                                with open(model_file_path, "rb") as model_file:
+                                    st.download_button(
+                                        label=f"Download {selected_model} (.pkl)",
+                                        data=model_file,
+                                        file_name=f"{selected_model}.pkl",
+                                        mime="application/octet-stream"
+                                    )
+                            else:
+                                st.error(f"Model file for {selected_model} not found!")
+
+                        # Display Learning Curves
+                        display_learning_curves(models, results, X_train, y_train)
+
+                        # Display Confusion Matrices
+                        display_confusion_matrices(models, results, X_test, y_test)
+
+            except Exception as e:
+                st.error(f"Error processing the uploaded file: {e}")
 
 
 
-
-
-
-
-
-
-    
 
 if __name__ == "__main__":
     main()
