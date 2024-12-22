@@ -572,14 +572,18 @@ def display_learning_curves(models, model_results, X_train, y_train):
                     )
                     st.pyplot(fig)
 
+
 def plot_confusion_matrix(model, X_test, y_test, model_name, class_names, model_accuracy):
     y_pred = model.predict(X_test)
-    cm = confusion_matrix(y_test, y_pred)
+
+    # Ensure that y_test and y_pred have the same class order
+    unique_classes = sorted(set(y_test) | set(y_pred))  # Union of unique classes in both
+    cm = confusion_matrix(y_test, y_pred, labels=unique_classes)
 
     fig, ax = plt.subplots(figsize=(6, 4))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax,
-                xticklabels=class_names, yticklabels=class_names)
-    ax.set_title(f"{model_name} \n  Accuracy: {model_accuracy:.2%}")
+                xticklabels=unique_classes, yticklabels=unique_classes)
+    ax.set_title(f"{model_name} \nAccuracy: {model_accuracy:.2%}")
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
     
@@ -594,7 +598,8 @@ def display_confusion_matrices(models, model_results, X_test, y_test):
     cols_per_row = 4
     model_names = list(models.keys())
 
-    class_names = sorted(y_test.unique())
+    # Extract class names from y_test
+    class_names = sorted(set(y_test))
 
     for row in range(rows):
         cols = st.columns(cols_per_row)
@@ -609,12 +614,16 @@ def display_confusion_matrices(models, model_results, X_test, y_test):
 
                 with cols[col_idx]:
                     if model_results.get(model_name, {}).get("Status") == "Success":
-                        fig = plot_confusion_matrix(
-                            model, X_test, y_test, model_name, class_names, model_accuracy
-                        )
-                        st.pyplot(fig)
+                        try:
+                            fig = plot_confusion_matrix(
+                                model, X_test, y_test, model_name, class_names, model_accuracy
+                            )
+                            st.pyplot(fig)
+                        except Exception as e:
+                            st.error(f"Error plotting confusion matrix for {model_name}: {e}")
                     else:
                         st.warning(f"{model_name} did not train successfully.")
+
     
 def main():
       
