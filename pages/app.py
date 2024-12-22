@@ -795,12 +795,7 @@ def main():
                     columns=["Model", "Accuracy"]
                 )
 
-                display_learning_curves(models, results, X_train, y_train)
-                
-                display_confusion_matrices(models, results, X_test, y_test) 
-
-                
-
+            
                 # Streamlit UI for selecting a model to download
                 selected_model = st.selectbox(
                         "📥 Select Model to Download", 
@@ -836,6 +831,10 @@ def main():
                     else:
                         st.error(f"Scaled model file for {selected_model} not found!")
 
+
+                display_learning_curves(models, results, X_train, y_train)
+                
+                display_confusion_matrices(models, results, X_test, y_test) 
                 
                    
                     
