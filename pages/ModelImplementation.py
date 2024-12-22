@@ -8,29 +8,42 @@ def load_files():
     model_file = st.sidebar.file_uploader("Upload Model (.pkl)", type="pkl")
     scaler_file = st.sidebar.file_uploader("Upload Scaler (.pkl)", type="pkl")
 
-    if model_file and scaler_file:
+    if model_file:
         try:
+            # Load the model (this could be a pipeline)
             model = joblib.load(model_file)
-            scaler = joblib.load(scaler_file)
-            st.sidebar.success("Model and scaler loaded successfully!")
+            st.sidebar.success("Model loaded successfully!")
+
+            # Handle the case when a scaler file is uploaded separately
+            scaler = None
+            if scaler_file:
+                scaler = joblib.load(scaler_file)
+                st.sidebar.success("Scaler loaded successfully!")
+
             return model, scaler
         except Exception as e:
             st.sidebar.error(f"Error loading files: {e}")
             return None, None
     else:
-        st.sidebar.info("Please upload both model and scaler files to proceed.")
+        st.sidebar.info("Please upload the model file to proceed.")
         return None, None
 
 def predict_and_visualize(model, scaler, input_features):
     try:
-        # Preprocess the inputs
+        # If the model is a pipeline, it includes the scaler, so we don't need to use the scaler separately
         input_array = [input_features]
-        input_scaled = scaler.transform(input_array)
 
-        # Make predictions
-        prediction = model.predict(input_scaled)
-        probabilities = model.predict_proba(input_scaled)[0]
-        class_labels = model.classes_
+        if isinstance(model, joblib.parallel._lru_cache._SafeCache):  # If model is a pipeline
+            # Use pipeline directly for prediction
+            prediction = model.predict(input_array)
+            probabilities = model.predict_proba(input_array)[0]
+            class_labels = model.classes_
+
+        else:  # If it's not a pipeline, we need to scale input using the scaler
+            input_scaled = scaler.transform(input_array)
+            prediction = model.predict(input_scaled)
+            probabilities = model.predict_proba(input_scaled)[0]
+            class_labels = model.classes_
 
         # Display results
         st.subheader("Prediction Results")
@@ -42,13 +55,14 @@ def predict_and_visualize(model, scaler, input_features):
             title="Class Probabilities",
         )
         st.plotly_chart(prob_fig)
+
     except Exception as e:
         st.error(f"Error during prediction: {e}")
 
 def main():
     st.title("ML Model Implementation")
     model, scaler = load_files()
-    if not model or not scaler:
+    if not model:
         return
 
     feature_names = ["length (mm)", "width (mm)", "density (g/cm³)", "pH"]
@@ -63,6 +77,8 @@ def main():
             for i, value in enumerate(random_values):
                 st.session_state[f"input_{i}"] = value
             st.session_state["randomized"] = True
+            # Reset input_features to randomized values
+            input_features = random_values
 
         # Feature Input Section
         for idx, feature in enumerate(feature_names):
@@ -91,6 +107,6 @@ def main():
             st.subheader("Manual Input Prediction")
             predict_and_visualize(model, scaler, input_features)
             st.session_state["make_prediction"] = False  
-            
+
 if __name__ == "__main__":
     main()
