@@ -152,7 +152,7 @@ def generate_synthetic_data(features, classes, total_sample_size):
 
     return class_data
 
-def handle_data_output(features, class_data, total_sample_size, train_test_split_percent):
+def handle_data_output(features, classes, class_data, total_sample_size, train_test_split_percent):
     """Handles data processing and output display."""
     all_data = np.vstack(class_data)
     np.random.shuffle(all_data)
