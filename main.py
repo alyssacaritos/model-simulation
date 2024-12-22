@@ -2,7 +2,7 @@ import streamlit as st
 import importlib.util
 
 # Import the necessary files
-from pages import app, LearningModel
+from pages import app, LearningModel, ModelImplementation
 
 st.set_page_config(page_title="Synthetic Data Generation", page_icon="🗃️")
 
@@ -15,7 +15,8 @@ def execute_py_file(file_path):
 # Mapping files to their corresponding functions
 file_functions = {
     "app.py": (app.main, "app"), 
-    "LearningModel.py": (LearningModel.run, "Ed"),   
+    "LearningModel.py": (LearningModel.run, "Algorithm Education"),  
+    "ModelImplementation.py":  (ModelImplementation.main, "Model Implementation"),
 }
 
 # App Title
