@@ -1093,7 +1093,7 @@ def main():
                         display_learning_curves(models, results, X_train, y_train)
 
                         # Display Confusion Matrices
-                        display_confusion_matrices(models, model_accuracy_df, X_test, y_test)
+                        display_confusion_matrices(models, results, X_test, y_test)
 
             except Exception as e:
                 st.error(f"Error processing the uploaded file: {e}")
