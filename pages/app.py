@@ -778,7 +778,7 @@ def main():
 
                 model_accuracy_df = pd.DataFrame(
                     [(model_name, results['Accuracy']) for model_name, results in results.items()],
-                    columns=["Model", "Accuracy"]
+                    columns=["models", "Accuracy"]
                 )
 
                 st.subheader("💾 Saved Models and Accuracy")
@@ -790,7 +790,7 @@ def main():
                 # Streamlit UI for selecting a model to download
                 selected_model = st.selectbox(
                         "📥 Select Model to Download", 
-                        options=model_accuracy_df["Model"]
+                        options=model_accuracy_df["model"]
                         )
 
                 if selected_model:
@@ -807,8 +807,8 @@ def main():
                                 file_name=f"{selected_model}.pkl",
                                 mime="application/octet-stream",
                             )
-                else:
-                    st.error(f"Original model file for {selected_model} not found!")
+                    else:
+                        st.error(f"Original model file for {selected_model} not found!")
 
                             # Step 4: Allow download of the scaled model (pipeline including scaler)
                     if os.path.exists(scaled_model_path):
