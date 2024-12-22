@@ -4,7 +4,7 @@ import importlib.util
 # Import the necessary files
 from pages import app, LearningModel
 
-st.set_page_config(page_title="Synthetic Data Generation", page_icon="♨️")
+st.set_page_config(page_title="Synthetic Data Generation", page_icon="🗃️")
 
 def execute_py_file(file_path):
     """Execute a Python file by importing it dynamically."""
