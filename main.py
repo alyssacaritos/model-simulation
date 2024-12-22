@@ -15,8 +15,8 @@ def execute_py_file(file_path):
 # Mapping files to their corresponding functions
 file_functions = {
     "app.py": (app.main, "app"), 
-    "LearningModel.py": (LearningModel.run, "Algorithm Education"),  
-    "ModelImplementation.py":  (ModelImplementation.main, "Model Implementation"),
+    "Algorithm Education.py": (LearningModel.run, "Algorithm Education"),  
+    "Model Implementation.py":  (ModelImplementation.main, "Model Implementation"),
 }
 
 # App Title
