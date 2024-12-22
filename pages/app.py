@@ -1001,33 +1001,44 @@ def main():
                         st.subheader("💾 Saved Models and Accuracy")
                         st.dataframe(model_accuracy_df)  # Display models with accuracy
 
-                        # Dropdown for selecting a model to download
-                        # Dropdown for selecting a model to download
-                        selected_model = st.selectbox("📥 Select Model to Download", options=model_accuracy_df["Model"])
+                        scaler = StandardScaler()
+                        model_accuracy_df["Scaled Accuracy"] = scaler.fit_transform(model_accuracy_df[["Accuracy"]])
 
-                        # Dropdown for choosing the format (scaled or non-scaled)
-                        download_option = st.radio(
-                            "📥 Choose the type of model to download:",
-                            options=["With Scaler", "Non-Scaled (Original)"]
+                        # Streamlit UI for selecting a model to download
+                        selected_model = st.selectbox(
+                            "📥 Select Model to Download", 
+                            options=model_accuracy_df["Model"]
                         )
 
                         if selected_model:
-                            if download_option == "With Scaler":
-                                model_file_path = os.path.join(saved_models_dir, f"{selected_model}_pipeline.pkl")
-                            else:  # Non-scaled model
-                                model_file_path = os.path.join(saved_models_dir, f"{selected_model}_model.pkl")
+                            # Define file paths for both the original model and the scaled model
+                            original_model_path = os.path.join(saved_models_dir, f"{selected_model}.pkl")
+                            scaled_model_path = os.path.join(saved_models_dir, f"{selected_model}_scaled.pkl")
 
-                            # Check if the file exists and provide the download button
-                            if os.path.exists(model_file_path):
-                                with open(model_file_path, "rb") as model_file:
+                            # Step 3: Allow download of the original model
+                            if os.path.exists(original_model_path):
+                                with open(original_model_path, "rb") as original_file:
                                     st.download_button(
-                                        label=f"Download {selected_model} ({download_option})",
-                                        data=model_file,
-                                        file_name=f"{selected_model}_{'pipeline' if download_option == 'With Scaler' else 'model'}.pkl",
-                                        mime="application/octet-stream"
+                                        label=f"Download {selected_model} (Original Model) (.pkl)",
+                                        data=original_file,
+                                        file_name=f"{selected_model}.pkl",
+                                        mime="application/octet-stream",
                                     )
                             else:
-                                st.error(f"Model file for {selected_model} ({download_option}) not found!")
+                                st.error(f"Original model file for {selected_model} not found!")
+
+                            # Step 4: Allow download of the scaled model (pipeline including scaler)
+                            if os.path.exists(scaled_model_path):
+                                with open(scaled_model_path, "rb") as scaled_file:
+                                    st.download_button(
+                                        label=f"Download {selected_model} (Scaled Model with Scaler) (.pkl)",
+                                        data=scaled_file,
+                                        file_name=f"{selected_model}_scaled.pkl",
+                                        mime="application/octet-stream",
+                                    )
+                            else:
+                                st.error(f"Scaled model file for {selected_model} not found!")
+                        
 
                         # Display Learning Curves
                         display_learning_curves(models, results, X_train, y_train)
