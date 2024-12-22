@@ -642,7 +642,7 @@ def main():
             # Select visualization type
             visualization_type = st.radio("Select Visualization Type", ["2D", "3D"])
 
-            if visualization_type == "2D":
+            if visualization_type == "2D" or "generated":
                 # Dropdowns for X and Y axes
                 col1, col2 = st.columns(2)
                 with col1:
@@ -662,7 +662,7 @@ def main():
                 plot_2d_scatter(class_df, x_feature, y_feature)
 
 
-            elif visualization_type == "3D":
+            elif visualization_type == "3D" or "generated":
                 # Dropdowns for X, Y, and Z axes
                 col1, col2, col3 = st.columns(3)
                 with col1:
