@@ -2,41 +2,48 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
+import time
 
 
 def load_files():
     st.sidebar.title("Upload Model Files")
+    st.sidebar.markdown("🔄 **Upload the model and scaler files to get started.**")
+    
     model_file = st.sidebar.file_uploader("Upload Model (.pkl)", type="pkl")
     scaler_file = st.sidebar.file_uploader("Upload Scaler (.pkl)", type="pkl")
 
     if model_file and scaler_file:
         try:
-            model = joblib.load(model_file)
-            scaler = joblib.load(scaler_file)
-            st.sidebar.success("Model and scaler loaded successfully!")
+            with st.spinner("Loading files..."):
+                model = joblib.load(model_file)
+                scaler = joblib.load(scaler_file)
+            st.sidebar.success("🎉 Model and scaler loaded successfully!")
             return model, scaler
         except Exception as e:
             st.sidebar.error(f"Error loading files: {e}")
             return None, None
     else:
-        st.sidebar.info("Please upload both model and scaler files to proceed.")
+        st.sidebar.info("📥 Please upload both model and scaler files.")
         return None, None
+
 
 def predict_and_visualize(model, scaler, input_features):
     try:
-        # Ensure input features are in array format
+        st.info("🧠 **Processing your input...**")
         input_array = [input_features]
 
-        # Check and apply scaler only if it's a proper scaler object
+        # Scale the inputs if a valid scaler is provided
         if scaler and hasattr(scaler, "transform"):
             input_scaled = scaler.transform(input_array)
         else:
             input_scaled = input_array
 
-        # Make predictions using the model
-        prediction = model.predict(input_scaled)
+        # Simulate processing time for better user experience
+        with st.spinner("🔍 Making predictions..."):
+            time.sleep(1)
+            prediction = model.predict(input_scaled)
 
-        # Handle probability predictions if supported
+        # Handle probabilities if available
         if hasattr(model, "predict_proba"):
             probabilities = model.predict_proba(input_scaled)[0]
             class_labels = model.classes_
@@ -45,46 +52,46 @@ def predict_and_visualize(model, scaler, input_features):
             class_labels = None
 
         # Display prediction results
-        st.subheader("Prediction Results")
-        st.write(f"*Predicted Class:* {prediction[0]}")
+        st.success(f"✨ **Predicted Class:** `{prediction[0]}`")
 
         # Display class probabilities (if available)
         if probabilities is not None and class_labels is not None:
+            st.markdown("### Class Probabilities")
             prob_fig = px.bar(
                 x=class_labels,
                 y=probabilities,
                 labels={"x": "Class", "y": "Probability"},
                 title="Class Probabilities",
+                color_discrete_sequence=["#636EFA"],
             )
-            st.plotly_chart(prob_fig)
+            st.plotly_chart(prob_fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Error during prediction: {e}")
 
 
 def main():
-    st.title("ML Model Implementation")
+    st.set_page_config(page_title="ML Model App", page_icon="🤖", layout="wide")
+    st.title("🤖 ML Model Implementation")
+
+    # Load model and scaler
     model, scaler = load_files()
     if not model or not scaler:
         return
 
-    # Feature names should match those used to train the model.
-    feature_names = model.feature_names_in_ if hasattr(model, 'feature_names_in_') else ["length (mm)", "width (mm)", "density (g/cm³)", "pH"]
+    # Organize the UI into tabs
+    tabs = st.tabs(["🎛️ Input Features", "📈 Prediction Results"])
+    
+    # Define feature names
+    feature_names = model.feature_names_in_ if hasattr(model, "feature_names_in_") else ["length (mm)", "width (mm)", "density (g/cm³)", "pH"]
     input_features = []
 
-    st.subheader("Enter Feature Values")
-    col1, col2 = st.columns([2, 3])  # Left: inputs, Right: outputs
-    with col1:
-        if st.button("🎲 Randomize"):
-            # Randomize input features using the random module
-            random_values = [random.uniform(0, 100) for _ in feature_names]
-            for i, value in enumerate(random_values):
-                st.session_state[f"input_{i}"] = value
-            st.session_state["randomized"] = True
+    with tabs[0]:  # Input features tab
+        st.header("Enter Feature Values")
+        st.markdown("💡 Use the sliders below to provide input features for prediction.")
 
-        # Feature Input Section
         for idx, feature in enumerate(feature_names):
-            value = st.number_input(
+            value = st.slider(
                 label=feature,
                 min_value=0.0,
                 max_value=1000.0,
@@ -94,21 +101,16 @@ def main():
             )
             input_features.append(value)
 
-        if st.button("Make Prediction"):
+        # Button to make predictions
+        if st.button("🚀 Predict"):
             st.session_state["make_prediction"] = True
 
-    with col2:
-        # Handle Randomization Results
-        if "randomized" in st.session_state and st.session_state["randomized"]:
-            st.subheader("Randomized Input Prediction")
-            predict_and_visualize(model, scaler, input_features)
-            st.session_state["randomized"] = False  
-
-        # Handle Manual Prediction Results
+    with tabs[1]:  # Prediction results tab
+        st.header("Prediction Results")
         if st.session_state.get("make_prediction"):
-            st.subheader("Manual Input Prediction")
             predict_and_visualize(model, scaler, input_features)
-            st.session_state["make_prediction"] = False  
+            st.session_state["make_prediction"] = False
+
 
 if __name__ == "__main__":
     main()
