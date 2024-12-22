@@ -782,8 +782,6 @@ def main():
                         }
                 model_accuracy_df = pd.DataFrame(model_accuracy_data)
 
-                st.subheader("💾 Saved Models and Accuracy")
-                st.dataframe(model_accuracy_df)  # Display models with accuracy
 
                 scaler = StandardScaler()
                 model_accuracy_df["Scaled Accuracy"] = scaler.fit_transform(model_accuracy_df[["Accuracy"]])
