@@ -2,8 +2,7 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.svm import SVC  # Import to handle SVC separately
+
 
 def load_files():
     st.sidebar.title("Upload Model Files")
