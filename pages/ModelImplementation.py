@@ -27,7 +27,7 @@ def predict_and_visualize(model, scaler, input_features):
         # Preprocess the inputs using the scaler before prediction
         input_array = [input_features]
         
-        # Check if scaler is provided and apply transformation
+        # Apply the scaler's transform method to scale the input features
         if scaler:
             input_scaled = scaler.transform(input_array)
         else:
