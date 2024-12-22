@@ -600,49 +600,49 @@ def main():
 
     if data_source == "Generate Synthetic Data":
         class_data = generate_synthetic_data(features, classes, total_sample_size)
-        if generate_data_button:
+        if generate_data_button or 'generated':
             handle_data_output(features, classes, class_data, total_sample_size, train_test_split_percent)
             
-        all_data = np.vstack(class_data)
-        np.random.shuffle(all_data)
-        feature_data = all_data[:, :-1].astype(float)
-        labels = all_data[:, -1]
+            all_data = np.vstack(class_data)
+            np.random.shuffle(all_data)
+            feature_data = all_data[:, :-1].astype(float)
+            labels = all_data[:, -1]
 
             
 
-        # Create DataFrame for class data
-        class_df = pd.DataFrame(feature_data, columns=features)
-        class_df['Target'] = labels
+            # Create DataFrame for class data
+            class_df = pd.DataFrame(feature_data, columns=features)
+            class_df['Target'] = labels
 
-        scaler = MinMaxScaler()
-        scaled_data = scaler.fit_transform(class_df[features]) 
-        scaled_df = pd.DataFrame(scaled_data, columns=features)
-        scaled_df['Target'] = labels  
+            scaler = MinMaxScaler()
+            scaled_data = scaler.fit_transform(class_df[features]) 
+            scaled_df = pd.DataFrame(scaled_data, columns=features)
+            scaled_df['Target'] = labels  
 
-        st.subheader("Feature Visualization")
-        features = class_df.columns[:-1]  # Exclude 'Target' for plotting
+            st.subheader("Feature Visualization")
+            features = class_df.columns[:-1]  # Exclude 'Target' for plotting
 
             # Convert all features to numeric, coercing errors
-        for feature in features:
-            class_df[feature] = pd.to_numeric(class_df[feature], errors='coerce')
+            for feature in features:
+                class_df[feature] = pd.to_numeric(class_df[feature], errors='coerce')
 
             # List of unique class labels
-        classes = class_df['Target'].unique()
+            classes = class_df['Target'].unique()
 
-        features = list(features) if isinstance(features, pd.Index) else features
+            features = list(features) if isinstance(features, pd.Index) else features
 
             # Initialize session state for features
-        if "x_feature" not in st.session_state:
-            st.session_state.x_feature = features[0]
-        if "y_feature" not in st.session_state:
-            st.session_state.y_feature = features[1] if len(features) > 1 else features[0]
-        if "z_feature" not in st.session_state:
+            if "x_feature" not in st.session_state:
+                st.session_state.x_feature = features[0]
+            if "y_feature" not in st.session_state:
+                st.session_state.y_feature = features[1] if len(features) > 1 else features[0]
+            if "z_feature" not in st.session_state:
                 st.session_state.z_feature = features[2] if len(features) > 2 else features[0]
 
             # Select visualization type
-        visualization_type = st.radio("Select Visualization Type", ["2D", "3D"])
+            visualization_type = st.radio("Select Visualization Type", ["2D", "3D"])
 
-        if visualization_type == "2D":
+            if visualization_type == "2D":
                 # Dropdowns for X and Y axes
                 col1, col2 = st.columns(2)
                 with col1:
@@ -662,7 +662,7 @@ def main():
                 plot_2d_scatter(class_df, x_feature, y_feature)
 
 
-        elif visualization_type == "3D":
+            elif visualization_type == "3D":
                 # Dropdowns for X, Y, and Z axes
                 col1, col2, col3 = st.columns(3)
                 with col1:
@@ -691,25 +691,25 @@ def main():
             
             # Split data
             #train_test_split_percent = st.slider("Train/Test Split (%)", 10, 90, 80)
-        X = class_df[features]
-        y = class_df["Target"]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=(100 - train_test_split_percent) / 100)
+            X = class_df[features]
+            y = class_df["Target"]
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=(100 - train_test_split_percent) / 100)
             
-        st.subheader("Download Dataset")
+            st.subheader("Download Dataset")
 
-        original_csv = convert_df_to_csv(class_df)
-        scaled_csv = convert_df_to_csv(scaled_df)
+            original_csv = convert_df_to_csv(class_df)
+            scaled_csv = convert_df_to_csv(scaled_df)
 
             # Create download buttons
-        col1, col2 = st.columns(2)
-        with col1:
+            col1, col2 = st.columns(2)
+            with col1:
                 st.download_button(
                     label="Original Dataset (CSV)",
                     data=original_csv,
                     file_name="original_dataset.csv",
                     mime="text/csv"
                 )
-        with col2:
+            with col2:
                 st.download_button(
                     label="Scaled Dataset (CSV)",
                     data=scaled_csv,
@@ -718,7 +718,7 @@ def main():
                 )
 
             
-        with st.expander("Dataset Statistics"):
+            with st.expander("Dataset Statistics"):
                 st.subheader("Dataset Statistics Overview")
 
                 col1, col2 = st.columns(2)
@@ -732,11 +732,11 @@ def main():
                     
 
             # Train models
-        best_model, results, models = train_models(X_train, y_train, X_test, y_test)
+            best_model, results, models = train_models(X_train, y_train, X_test, y_test)
 
             # Display results
             
-        if best_model:
+            if best_model:
                 display_best_model_and_results(results)
                 
                 display_classification_report(best_model, X_test, y_test)
@@ -782,7 +782,17 @@ def main():
                             display_model_comparison(results)
                             display_performance_summary(results)
     
- 
+            
+
+
+
+
+
+
+
+
+
+    
 
 if __name__ == "__main__":
     main()
