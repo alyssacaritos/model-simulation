@@ -31,12 +31,10 @@ def load_files():
 
 def predict_and_visualize(model, scaler, input_features):
     try:
-        # If the model is a pipeline, it includes the scaler, so we don't need to use the scaler separately
+        # If the model is a pipeline, it should handle scaling and prediction
         input_array = [input_features]
 
-        # Check if model is a Pipeline
-        if isinstance(model, Pipeline):  # Correct way to check if model is a Pipeline
-            # Use pipeline directly for prediction
+        if isinstance(model, Pipeline):  # If it's a pipeline, we don't need to scale separately
             prediction = model.predict(input_array)
             probabilities = model.predict_proba(input_array)[0]
             class_labels = model.classes_
