@@ -483,7 +483,7 @@ def save_models(models, results, X_train, y_train, saved_models_dir="saved_model
             joblib.dump(model, original_model_path)
 
             # Create and save scaled model pipeline
-            scaler = MinMaxScaler()
+            scaler = StandardScaler()
             X_train_scaled = scaler.fit_transform(X_train)
 
                
@@ -494,7 +494,7 @@ def save_models(models, results, X_train, y_train, saved_models_dir="saved_model
             model.fit(X_train_scaled, y_train)
             scaled_model_file_path = os.path.join(saved_models_dir, f"{model_name}_scaled.pkl")
             joblib.dump(model, scaled_model_file_path)
-            
+
         else:
             print(f"Model {model_name} has no accuracy data.")
     else:
