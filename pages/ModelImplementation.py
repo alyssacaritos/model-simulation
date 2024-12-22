@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
+from sklearn.pipeline import Pipeline  # Make sure to import Pipeline from sklearn
 
 def load_files():
     st.sidebar.title("Upload Model Files")
@@ -33,7 +34,8 @@ def predict_and_visualize(model, scaler, input_features):
         # If the model is a pipeline, it includes the scaler, so we don't need to use the scaler separately
         input_array = [input_features]
 
-        if isinstance(model, joblib.parallel._lru_cache._SafeCache):  # If model is a pipeline
+        # Check if model is a Pipeline
+        if isinstance(model, Pipeline):  # Correct way to check if model is a Pipeline
             # Use pipeline directly for prediction
             prediction = model.predict(input_array)
             probabilities = model.predict_proba(input_array)[0]
