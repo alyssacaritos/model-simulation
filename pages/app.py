@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import time
 import os
-import pickle
+import joblib
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -438,7 +438,7 @@ def save_models(models, results, directory="saved_models"):
     for model_name, result in results.items():
         if result["Status"] == "Success":
             filepath = os.path.join(directory, f"{model_name}.pkl")
-            pickle.dump(models[model_name], filepath)
+            joblib.dump(models[model_name], filepath)
     return directory
 
 def convert_df_to_csv(df):
@@ -465,7 +465,7 @@ def save_models(models, results, saved_models_dir):
             model_accuracy = results.get(model_name, {}).get("Accuracy", "N/A")
             if model_accuracy != "N/A":
                 model_file_path = os.path.join(saved_models_dir, f"{model_name}.pkl")
-                pickle.dump(model, model_file_path)
+                joblib.dump(model, model_file_path)
                 st.session_state["saved_models"] = saved_models_dir
     else:
         st.error("No models or results found to save.")
