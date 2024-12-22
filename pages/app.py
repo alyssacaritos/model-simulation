@@ -788,14 +788,16 @@ def main():
                 saved_models_dir = "saved_models"
                 save_models(models, results, X_train, y_train)
 
-                display_learning_curves(models, results, X_train, y_train)
                 
-                display_confusion_matrices(models, results, X_test, y_test) 
 
                 model_accuracy_df = pd.DataFrame(
                     [(model_name, results['Accuracy']) for model_name, results in results.items()],
                     columns=["Model", "Accuracy"]
                 )
+
+                display_learning_curves(models, results, X_train, y_train)
+                
+                display_confusion_matrices(models, results, X_test, y_test) 
 
                 
 
