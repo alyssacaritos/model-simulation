@@ -32,7 +32,6 @@ def predict_and_visualize(model, scaler, input_features):
         if scaler and hasattr(scaler, "transform"):
             input_scaled = scaler.transform(input_array)
         else:
-            st.warning("No valid scaler provided; using raw input features.")
             input_scaled = input_array
 
         # Make predictions using the model
