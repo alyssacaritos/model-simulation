@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
-from sklearn.pipeline import Pipeline  # Make sure to import Pipeline from sklearn
+from sklearn.pipeline import Pipeline  # Ensure Pipeline is correctly imported
 
 def load_files():
     st.sidebar.title("Upload Model Files")
@@ -31,30 +31,36 @@ def load_files():
 
 def predict_and_visualize(model, scaler, input_features):
     try:
-        # If the model is a pipeline, it should handle scaling and prediction
         input_array = [input_features]
 
-        if isinstance(model, Pipeline):  # If it's a pipeline, we don't need to scale separately
+        # Check if the model is a pipeline
+        if isinstance(model, Pipeline):
+            # If it's a pipeline, it will handle both transformation and prediction
             prediction = model.predict(input_array)
-            probabilities = model.predict_proba(input_array)[0]
+            probabilities = model.predict_proba(input_array)[0] if hasattr(model, "predict_proba") else []
             class_labels = model.classes_
 
-        else:  # If it's not a pipeline, we need to scale input using the scaler
-            input_scaled = scaler.transform(input_array)
+        else:
+            # If it's not a pipeline, we scale manually
+            if scaler:
+                input_scaled = scaler.transform(input_array)
+            else:
+                input_scaled = input_array  # If no scaler is provided, use raw data
             prediction = model.predict(input_scaled)
-            probabilities = model.predict_proba(input_scaled)[0]
+            probabilities = model.predict_proba(input_scaled)[0] if hasattr(model, "predict_proba") else []
             class_labels = model.classes_
 
         # Display results
         st.subheader("Prediction Results")
         st.write(f"*Predicted Class:* {prediction[0]}")
-        prob_fig = px.bar(
-            x=class_labels,
-            y=probabilities,
-            labels={"x": "Class", "y": "Probability"},
-            title="Class Probabilities",
-        )
-        st.plotly_chart(prob_fig)
+        if probabilities:
+            prob_fig = px.bar(
+                x=class_labels,
+                y=probabilities,
+                labels={"x": "Class", "y": "Probability"},
+                title="Class Probabilities",
+            )
+            st.plotly_chart(prob_fig)
 
     except Exception as e:
         st.error(f"Error during prediction: {e}")
