@@ -2,53 +2,61 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
-from sklearn.pipeline import Pipeline  # Ensure Pipeline is correctly imported
+from sklearn.preprocessing import MinMaxScaler  # Import scaler if it's not in the pipeline
 
 def load_files():
     st.sidebar.title("Upload Model Files")
     model_file = st.sidebar.file_uploader("Upload Model (.pkl)", type="pkl")
     scaler_file = st.sidebar.file_uploader("Upload Scaler (.pkl)", type="pkl")
 
-    if model_file:
+    if model_file and scaler_file:
         try:
-            # Load the model (this could be a pipeline)
+            # Load the model and scaler independently
             model = joblib.load(model_file)
-            st.sidebar.success("Model loaded successfully!")
-
-            # Handle the case when a scaler file is uploaded separately
-            scaler = None
-            if scaler_file:
-                scaler = joblib.load(scaler_file)
-                st.sidebar.success("Scaler loaded successfully!")
-
-            return model, scaler
+            scaler = joblib.load(scaler_file)
+            st.sidebar.success("Model and scaler loaded successfully!")
+            
+            # Try to extract feature names from the model or scaler
+            feature_names = extract_feature_names(model, scaler)
+            if not feature_names:
+                st.sidebar.error("Could not extract feature names from the model or scaler.")
+                return None, None, None
+            return model, scaler, feature_names
         except Exception as e:
             st.sidebar.error(f"Error loading files: {e}")
-            return None, None
+            return None, None, None
     else:
-        st.sidebar.info("Please upload the model file to proceed.")
-        return None, None
+        st.sidebar.info("Please upload both model and scaler files to proceed.")
+        return None, None, None
+
+def extract_feature_names(model, scaler):
+    # Check if the model has feature_names_in_ attribute
+    if hasattr(model, 'feature_names_in_'):
+        return model.feature_names_in_
+    
+    # If not, check if the scaler is part of a pipeline and has feature names
+    if hasattr(scaler, 'feature_names_in_'):
+        return scaler.feature_names_in_
+    
+    # Default fallback if feature names are not found
+    return None
 
 def predict_and_visualize(model, scaler, input_features):
     try:
         input_array = [input_features]
 
-        # Check if the model is a pipeline
-        if isinstance(model, Pipeline):
-            # If it's a pipeline, it will handle both transformation and prediction
-            prediction = model.predict(input_array)
-            probabilities = model.predict_proba(input_array)[0] if hasattr(model, "predict_proba") else []
-            class_labels = model.classes_
-
+        # Check if the scaler has the transform method
+        if hasattr(scaler, 'transform'):
+            # Apply the scaler transformation
+            input_scaled = scaler.transform(input_array)
         else:
-            # If it's not a pipeline, we scale manually
-            if scaler:
-                input_scaled = scaler.transform(input_array)
-            else:
-                input_scaled = input_array  # If no scaler is provided, use raw data
-            prediction = model.predict(input_scaled)
-            probabilities = model.predict_proba(input_scaled)[0] if hasattr(model, "predict_proba") else []
-            class_labels = model.classes_
+            st.error("Scaler does not have a transform method. Ensure it's a valid scaler.")
+            return
+
+        # Make predictions with the model
+        prediction = model.predict(input_scaled)
+        probabilities = model.predict_proba(input_scaled)[0] if hasattr(model, "predict_proba") else []
+        class_labels = model.classes_
 
         # Display results
         st.subheader("Prediction Results")
@@ -67,11 +75,10 @@ def predict_and_visualize(model, scaler, input_features):
 
 def main():
     st.title("ML Model Implementation")
-    model, scaler = load_files()
-    if not model:
+    model, scaler, feature_names = load_files()
+    if not model or not scaler or not feature_names:
         return
 
-    feature_names = ["length (mm)", "width (mm)", "density (g/cm³)", "pH"]
     input_features = []
 
     st.subheader("Enter Feature Values")
