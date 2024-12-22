@@ -774,7 +774,7 @@ def main():
                 display_model_accuracy(results)
     
                 saved_models_dir = "saved_models"
-                save_models(models, results, saved_models_dir)
+                save_models(models, results, X_train, y_train) 
 
                 model_accuracy_df = pd.DataFrame(
                     [(model_name, results['Accuracy']) for model_name, results in results.items()],
