@@ -30,14 +30,14 @@ def load_files():
         return None, None, None
 
 def extract_feature_names(model, scaler):
-    # Check if the model has feature_names_in_ attribute
+    # Check if the model has the feature_names_in_ attribute
     if hasattr(model, 'feature_names_in_'):
         return model.feature_names_in_
-    
+
     # If not, check if the scaler is part of a pipeline and has feature names
     if hasattr(scaler, 'feature_names_in_'):
         return scaler.feature_names_in_
-    
+
     # Default fallback if feature names are not found
     return None
 
