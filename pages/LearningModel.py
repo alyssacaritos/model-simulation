@@ -272,7 +272,7 @@ def run():
 # Confusion Matrix
     st.subheader("📊 Confusion Matrix:")
     cm = confusion_matrix(y_test, y_pred)
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(4, 4))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=model.classes_, yticklabels=model.classes_)
     plt.xlabel("Predicted")
     plt.ylabel("True")
@@ -286,7 +286,7 @@ def run():
     train_mean = train_scores.mean(axis=1)
     test_mean = test_scores.mean(axis=1)
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(4, 4))
     plt.plot(train_sizes, train_mean, label="Training accuracy", color="blue")
     plt.plot(train_sizes, test_mean, label="Cross-validation score", color="green")
     plt.xlabel("Training Set Size")
