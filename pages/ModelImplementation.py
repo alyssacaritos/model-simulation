@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 def load_files():
     st.sidebar.title("Upload Model Files")
@@ -23,25 +24,32 @@ def load_files():
 
 def predict_and_visualize(model, scaler, input_features):
     try:
-        # Preprocess the inputs
+        # Preprocess the inputs using the scaler before prediction
         input_array = [input_features]
-        input_scaled = scaler.transform(input_array)
+        
+        # Check if scaler is provided and apply transformation
+        if scaler:
+            input_scaled = scaler.transform(input_array)
+        else:
+            input_scaled = input_array  # If no scaler, use raw input features
 
         # Make predictions
         prediction = model.predict(input_scaled)
-        probabilities = model.predict_proba(input_scaled)[0]
+        probabilities = model.predict_proba(input_scaled)[0] if hasattr(model, "predict_proba") else []
         class_labels = model.classes_
 
         # Display results
         st.subheader("Prediction Results")
         st.write(f"*Predicted Class:* {prediction[0]}")
-        prob_fig = px.bar(
-            x=class_labels,
-            y=probabilities,
-            labels={"x": "Class", "y": "Probability"},
-            title="Class Probabilities",
-        )
-        st.plotly_chart(prob_fig)
+        if probabilities:
+            prob_fig = px.bar(
+                x=class_labels,
+                y=probabilities,
+                labels={"x": "Class", "y": "Probability"},
+                title="Class Probabilities",
+            )
+            st.plotly_chart(prob_fig)
+
     except Exception as e:
         st.error(f"Error during prediction: {e}")
 
@@ -51,7 +59,8 @@ def main():
     if not model or not scaler:
         return
 
-    feature_names = ["length (mm)", "width (mm)", "density (g/cm³)", "pH"]
+    # Feature names should match those used to train the model.
+    feature_names = model.feature_names_in_ if hasattr(model, 'feature_names_in_') else ["length (mm)", "width (mm)", "density (g/cm³)", "pH"]
     input_features = []
 
     st.subheader("Enter Feature Values")
@@ -91,6 +100,6 @@ def main():
             st.subheader("Manual Input Prediction")
             predict_and_visualize(model, scaler, input_features)
             st.session_state["make_prediction"] = False  
-            
+
 if __name__ == "__main__":
     main()
