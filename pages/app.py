@@ -776,10 +776,11 @@ def main():
                 saved_models_dir = "saved_models"
                 save_models(models, results, X_train, y_train) 
 
-                model_accuracy_df = pd.DataFrame(
-                    [(model_name, results['Accuracy']) for model_name, results in results.items()],
-                    columns=["models", "Accuracy"]
-                )
+                model_accuracy_data = {
+                            "Model": list(models.keys()),
+                            "Accuracy": [results.get(model_name, {}).get("Accuracy", "N/A") for model_name in models.keys()]
+                        }
+                model_accuracy_df = pd.DataFrame(model_accuracy_data)
 
                 st.subheader("💾 Saved Models and Accuracy")
                 st.dataframe(model_accuracy_df)  # Display models with accuracy
@@ -790,7 +791,7 @@ def main():
                 # Streamlit UI for selecting a model to download
                 selected_model = st.selectbox(
                         "📥 Select Model to Download", 
-                        options=model_accuracy_df["model"]
+                        options=model_accuracy_df["Model"]
                         )
 
                 if selected_model:
