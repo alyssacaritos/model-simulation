@@ -263,9 +263,9 @@ def run():
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     st.subheader("📝 Performance Metrics:")
-    st.write(f"**Accuracy**: {accuracy:.2f}")
+    st.dataframe(f"**Accuracy**: {accuracy:.2f}")
     st.write("**Classification Report**:")
-    st.text(classification_report(y_test, y_pred))
+    st.dataframe(classification_report(y_test, y_pred))
 
 # Confusion Matrix
     st.subheader("📊 Confusion Matrix:")
