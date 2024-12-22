@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler 
@@ -466,23 +466,33 @@ def display_model_accuracy(results):
     st.dataframe(model_accuracy_df)
 
 # Function to save models
-def save_models(models, results, saved_models_dir):
-    if models and results:
-        st.session_state["models"] = models
-        st.session_state["results"] = results
-        
-        saved_models_dir = "saved_models"
-        os.makedirs(saved_models_dir, exist_ok=True)
-
-        for model_name, model in models.items():
-            model_accuracy = results.get(model_name, {}).get("Accuracy", "N/A")
-            if model_accuracy != "N/A":
-                model_file_path = os.path.join(saved_models_dir, f"{model_name}.pkl")
-                joblib.dump(model, model_file_path)
-                st.session_state["saved_models"] = saved_models_dir
-    else:
+def save_models(models, results, X_train, y_train, saved_models_dir="saved_models"):
+    if not models or not results:
         st.error("No models or results found to save.")
-# Function to display the download button for models
+        return
+
+    # Create directory for saving models
+    os.makedirs(saved_models_dir, exist_ok=True)
+    
+    for model_name, model in models.items():
+        model_accuracy = results.get(model_name, {}).get("Accuracy", "N/A")
+        
+        if model_accuracy != "N/A":
+            # Save original model
+            original_model_path = os.path.join(saved_models_dir, f"{model_name}.pkl")
+            joblib.dump(model, original_model_path)
+
+            # Create and save scaled model pipeline
+            scaled_model_pipeline = Pipeline(steps=[("scaler", MinMaxScaler()), ("model", model)])
+            scaled_model_pipeline.fit(X_train, y_train)  # Fit pipeline with training data
+
+            scaled_model_path = os.path.join(saved_models_dir, f"{model_name}_scaled.pkl")
+            joblib.dump(scaled_model_pipeline, scaled_model_path)
+
+    # Save directory path to session state
+    st.session_state["saved_models"] = saved_models_dir
+    st.success("Models saved successfully!")
+                # Function to display the download button for models
 def display_download_button(saved_models_dir, model_accuracy_df):
     selected_model = st.selectbox("📥 Select Model to Download", options=model_accuracy_df["Model"])
 
@@ -989,7 +999,7 @@ def main():
 
                         # Save models using the existing save_models function
                         saved_models_dir = "saved_models"  # Ensure this directory is defined
-                        save_models(models, results, saved_models_dir)  # Correctly call the function
+                        save_models(models, results, X_train, y_train)  # Correctly call the function
 
                         # Display Saved Models Table with Accuracy
                         model_accuracy_data = {
