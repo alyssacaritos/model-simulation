@@ -183,7 +183,7 @@ def handle_data_output(features, classes, class_data, total_sample_size, train_t
         st.markdown("Testing Samples")
         st.subheader(f"{train_samples} ({train_test_split_percent}%)")
 
-    scaler = MinMaxScaler()
+    scaler = StandardScaler()
     scaled_data = scaler.fit_transform(class_df[features])
     scaled_df = pd.DataFrame(scaled_data, columns=features)
     scaled_df['Target'] = labels
@@ -632,7 +632,7 @@ def main():
             class_df = pd.DataFrame(feature_data, columns=features)
             class_df['Target'] = labels
 
-            scaler = MinMaxScaler()
+            scaler = StandardScaler()
             scaled_data = scaler.fit_transform(class_df[features]) 
             scaled_df = pd.DataFrame(scaled_data, columns=features)
             scaled_df['Target'] = labels  
@@ -864,26 +864,69 @@ def main():
                     st.subheader("📊 Feature Visualization")
 
                     # Visualization Type Selection
-                    visualization_type_main = st.radio("📈Select Visualization Type📈", ["2D", "3D"], key="visualization_type_main")
+                    for feature in features:
+                        class_df[feature] = pd.to_numeric(class_df[feature], errors='coerce')
 
-                    if visualization_type_main == "2D":
+                    # List of unique class labels
+                    classes = class_df['Target'].unique()
+
+                    features = list(features) if isinstance(features, pd.Index) else features
+
+                    # Initialize session state for features
+                    if "x_feature" not in st.session_state:
+                        st.session_state.x_feature = features[0]
+                    if "y_feature" not in st.session_state:
+                        st.session_state.y_feature = features[1] if len(features) > 1 else features[0]
+                    if "z_feature" not in st.session_state:
+                        st.session_state.z_feature = features[2] if len(features) > 2 else features[0]
+
+                    # Select visualization type
+                    visualization_type = st.radio("📈Select Visualization Type📈", ["2D", "3D"])
+
+                    if visualization_type == "2D":
                         # Dropdowns for X and Y axes
                         col1, col2 = st.columns(2)
                         with col1:
-                            x_feature = st.selectbox("Select X-Axis Feature", features, key="x_feature_select")
+                            x_feature = st.selectbox(
+                                "Select X-Axis Feature",
+                                features,
+                                index=features.index(st.session_state.x_feature) if st.session_state.x_feature in features else 0,
+                                key="x_feature_select"
+                            )
                         with col2:
-                            y_feature = st.selectbox("Select Y-Axis Feature", features, key="y_feature_select")
+                            y_feature = st.selectbox(
+                                "Select Y-Axis Feature",
+                                features,
+                                index=features.index(st.session_state.y_feature) if st.session_state.y_feature in features else 0,
+                                key="y_feature_select"
+                            )
                         plot_2d_scatter(class_df, x_feature, y_feature)
 
-                    elif visualization_type_main == "3D":
+
+                    elif visualization_type == "3D":
                         # Dropdowns for X, Y, and Z axes
                         col1, col2, col3 = st.columns(3)
                         with col1:
-                            x_feature = st.selectbox("Select X-Axis Feature", features, key="x_3d")
+                            x_feature = st.selectbox(
+                                "Select X-Axis Feature",
+                                features,
+                                index=features.index(st.session_state.x_feature) if st.session_state.x_feature in features else 0,
+                                key="x_3d"
+                            )
                         with col2:
-                            y_feature = st.selectbox("Select Y-Axis Feature", features, key="y_3d")
+                            y_feature = st.selectbox(
+                                "Select Y-Axis Feature",
+                                features,
+                                index=features.index(st.session_state.y_feature) if st.session_state.y_feature in features else 0,
+                                key="y_3d"
+                            )
                         with col3:
-                            z_feature = st.selectbox("Select Z-Axis Feature", features, key="z_3d")
+                            z_feature = st.selectbox(
+                                "Select Z-Axis Feature",
+                                features,
+                                index=features.index(st.session_state.z_feature) if st.session_state.z_feature in features else 0,
+                                key="z_3d"
+                            )
                         plot_3d_scatter(class_df, x_feature, y_feature, z_feature)
 
                     st.subheader("📥 Download Dataset")
