@@ -3,6 +3,7 @@ import random
 import joblib
 import plotly.express as px
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.svm import SVC  # Import to handle SVC separately
 
 def load_files():
     st.sidebar.title("Upload Model Files")
@@ -35,13 +36,21 @@ def predict_and_visualize(model, scaler, input_features):
 
         # Make predictions
         prediction = model.predict(input_scaled)
-        probabilities = model.predict_proba(input_scaled)[0] if hasattr(model, "predict_proba") else []
-        class_labels = model.classes_
+        
+        # Check if model supports 'predict_proba' and handle accordingly
+        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(input_scaled)[0]
+            class_labels = model.classes_  # Class labels for visualization
+        else:
+            probabilities = None
+            class_labels = None
 
         # Display results
         st.subheader("Prediction Results")
         st.write(f"*Predicted Class:* {prediction[0]}")
-        if probabilities:
+
+        # Display class probabilities if available
+        if probabilities and class_labels is not None:
             prob_fig = px.bar(
                 x=class_labels,
                 y=probabilities,
