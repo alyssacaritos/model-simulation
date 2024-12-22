@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import joblib
 import plotly.express as px
-from sklearn.preprocessing import MinMaxScaler  # Import scaler if it's not in the pipeline
+import numpy as np
 
 def load_files():
     st.sidebar.title("Upload Model Files")
@@ -15,7 +15,7 @@ def load_files():
             model = joblib.load(model_file)
             scaler = joblib.load(scaler_file)
             st.sidebar.success("Model and scaler loaded successfully!")
-            
+
             # Try to extract feature names from the model or scaler
             feature_names = extract_feature_names(model, scaler)
             if not feature_names:
