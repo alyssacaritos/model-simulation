@@ -786,14 +786,16 @@ def main():
                 display_model_accuracy(results)
     
                 saved_models_dir = "saved_models"
-                save_models(models, results, X_train, y_train) 
+                save_models(models, results, X_train, y_train)
 
-                model_accuracy_data = {
-                            "Model": list(models.keys()),
-                            "Accuracy": [results.get(model_name, {}).get("Accuracy", "N/A") for model_name in models.keys()]
-                        }
-                model_accuracy_df = pd.DataFrame(model_accuracy_data)
+                display_learning_curves(models, results, X_train, y_train)
+                
+                display_confusion_matrices(models, results, X_test, y_test) 
 
+                model_accuracy_df = pd.DataFrame(
+                    [(model_name, results['Accuracy']) for model_name, results in results.items()],
+                    columns=["Model", "Accuracy"]
+                )
 
                 
 
@@ -833,9 +835,7 @@ def main():
                         st.error(f"Scaled model file for {selected_model} not found!")
 
                 
-                display_learning_curves(models, results, X_train, y_train)
-                
-                display_confusion_matrices(models, results, X_test, y_test)
+                   
                     
     elif data_source == "Upload Dataset":
         if uploaded_file is not None:
