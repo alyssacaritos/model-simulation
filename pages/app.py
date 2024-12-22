@@ -821,8 +821,7 @@ def main():
                             )
                     else:
                         st.error(f"Scaled model file for {selected_model} not found!")
-                        
-                display_download_button(saved_models_dir, model_accuracy_df)
+
                 
                 display_learning_curves(models, results, X_train, y_train)
                 
