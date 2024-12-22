@@ -70,13 +70,10 @@ else:
     - Use **pandas**, **matplotlib**, and **seaborn** for:  
       - Exploring statistical properties.  
       - Visualizing correlations and trends.
-
+    """)
     ### 5️⃣ **Simulation**  
-    - Fit models to data and simulate outcomes.
 
-
-
-    # Additional Engagement: Why it Matters
+   # Additional Engagement: Why it Matters
     st.header("📚 **Why Modeling and Simulation Matter**")
     st.markdown("""
     Modeling and simulation are powerful tools for predicting outcomes, optimizing systems, and making data-driven decisions.  
@@ -86,5 +83,3 @@ else:
     - **Healthcare**: Simulating disease spread or patient outcomes.  
     """)
 
-    # Footer Section
-    st.write("🌟 Let’s embark on this Python-powered journey into **modeling and simulation** and unlock the secrets of data-driven systems! 🚀")
